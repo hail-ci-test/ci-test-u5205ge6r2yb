@@ -1,0 +1,195 @@
+{% extends "dynamic-base.html" %}
+
+{# TEMPLATE VAR SETTINGS #}
+{%- set url_root = pathto('', 1) %}
+{%- if url_root == '#' %}{% set url_root = '' %}{% endif %}
+
+{%- set script_files = script_files + ['_static/toggle.js'] %}
+{%- set css_files = css_files + ['_static/rtd_modifications.css'] %}
+
+{% if pagename == "annotation_database_ui" %}
+{%- set css_files = css_files + [ '_static/annotationdb/annotationdb.css'] %}
+{%- set script_files = script_files + ['_static/hail_version.js','_static/annotationdb/annotationdb.js'] %}
+{% endif %}
+
+{% if pagename == "datasets" %}
+{%- set css_files = css_files + [ '_static/annotationdb/annotationdb.css'] %}
+{%- set script_files = script_files + ['_static/hail_version.js','_static/datasets/datasets.js'] %}
+{% endif %}
+
+{% block title %}
+{{ title|striptags|e }}{{ titlesuffix }}
+{% endblock %}
+
+{% block meta_description %}
+{{ title|striptags|e }}{{ titlesuffix }}
+{% endblock %}
+
+{% block head %}
+  {{ metatags }}
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.min.js"></script>
+
+  <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+
+  {% for cssfile in css_files %}
+    <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
+  {% endfor %}
+
+  {% for cssfile in extra_css_files %}
+    <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
+  {% endfor %}
+
+  {%- block linktags %}
+    {%- if hasdoc('about') %}
+        <link rel="author" title="{{ _('About these documents') }}"
+              href="{{ pathto('about') }}"/>
+    {%- endif %}
+    {%- if hasdoc('genindex') %}
+        <link rel="index" title="{{ _('Index') }}"
+              href="{{ pathto('genindex') }}"/>
+    {%- endif %}
+    {%- if hasdoc('search') %}
+        <link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}"/>
+    {%- endif %}
+    {%- if hasdoc('copyright') %}
+        <link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}"/>
+    {%- endif %}
+    <link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}"/>
+    {%- if parents %}
+        <link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}"/>
+    {%- endif %}
+    {%- if next %}
+        <link rel="next" title="{{ next.title|striptags|e }}" href="{{ next.link|e }}"/>
+    {%- endif %}
+    {%- if prev %}
+        <link rel="prev" title="{{ prev.title|striptags|e }}" href="{{ prev.link|e }}"/>
+    {%- endif %}
+  {%- endblock %}
+  {%- block extrahead %} {% endblock %}
+
+  {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
+  <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
+
+  {% if pagename == "annotationdb" %}
+    <link rel="stylesheet" href="../../annotationdb/annotationdb.css">
+  {% endif %}
+
+{% endblock %}
+
+{% block content %}
+  <div class="wy-grid-for-nav">
+
+    {# SIDE NAV, TOGGLES ON MOBILE #}
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          {% block sidebartitle %}
+
+          {% include "searchbox.html" %}
+
+          {% endblock %}
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <a href="{{ pathto(master_doc) }}">
+            {% if not logo or not theme_logo_only %}
+              <span class="icon icon-home"></span> {{ project }} Docs
+              {% if theme_display_version %}
+                {%- set nav_version = version %}
+                {% if READTHEDOCS and current_version %}
+                  {%- set nav_version = current_version %}
+                {% endif %}
+                {% if nav_version %}
+                  ({{ nav_version }})
+                {% endif %}
+              {% endif %}
+            {% endif %}
+
+            {% if logo %}
+              {# Not strictly valid HTML, but it's the only way to display/scale it properly, without weird scripting or heaps of work #}
+              <img src="{{ pathto('_static/' + logo, 1) }}" class="logo" />
+            {% endif %}
+          </a>
+
+          {% block menu %}
+            {% set toctree = toctree(maxdepth=4, collapse=theme_collapse_navigation, includehidden=True) %}
+            {% if toctree %}
+                {{ toctree }}
+            {% else %}
+                <!-- Local TOC -->
+                <div class="local-toc">{{ toc }}</div>
+            {% endif %}
+          {% endblock %}
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      {# MOBILE NAV, TRIGGLES SIDE NAV ON TOGGLE #}
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="{{ pathto(master_doc) }}">{{ project }}</a>
+      </nav>
+
+
+      {# PAGE CONTENT #}
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          {% include "breadcrumbs.html" %}
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            {% block body %}{% endblock %}
+           </div>
+          </div>
+          {% include "footer.html" %}
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  {% include "versions.html" %}
+
+  {% if not embedded %}
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'{{ url_root }}',
+            VERSION:'{{ release|e }}',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'{{ '' if no_search_suffix else file_suffix }}',
+            HAS_SOURCE:  '{{ has_source|lower }}',
+            SOURCELINK_SUFFIX: '{{ sourcelink_suffix }}'
+        };
+    </script>
+    {%- for scriptfile in script_files %}
+      <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
+    {%- endfor %}
+
+  {% endif %}
+
+  <script type="text/javascript" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
+  <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+
+  {# STICKY NAVIGATION #}
+  {% if theme_sticky_navigation %}
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  {% endif %}
+
+  {%- block footer %} {% endblock %}
+
+  <script type="text/javascript">
+  function search() {
+      var search = $('[name=q]')
+      search.val('')
+      search.focus()
+      return false;
+    }
+    Mousetrap.bind('/', search);
+  </script>
+  <script src="{{ pathto('_static/goto.js', 1) }}"></script>
+{% endblock %}
